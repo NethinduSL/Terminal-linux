@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linux Terminal</title>
+  <style>
+    body {
+      font-family: monospace;
+      background-color: black;
+      color: white;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #terminal {
+      width: 80%;
+      height: 70%;
+      background-color: #1e1e1e;
+      padding: 10px;
+      overflow-y: auto;
+      border-radius: 5px;
+    }
+    .input-line {
+      display: flex;
+      align-items: center;
+    }
+    .prompt {
+      color: #00ff00;
+      margin-right: 10px;
+    }
+    #command-input {
+      background: none;
+      border: none;
+      color: white;
+      outline: none;
+      flex-grow: 1;
+    }
+    .output {
+      color: white;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="terminal">
+    <div id="output-area"></div>
+    <div class="input-line">
+      <span class="prompt">user@linux:~$</span>
+      <input type="text" id="command-input" autofocus>
+    </div>
+  </div>
+
+  <script>
+    const commandInput = document.getElementById('command-input');
+    const outputArea = document.getElementById('output-area');
+
+    commandInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        const command = commandInput.value;
+        commandInput.value = '';
+
+        appendOutput(`user@linux:~$ ${command}`);
+        runCommand(command);
+      }
+    });
+
+    function appendOutput(output) {
+      const outputElement = document.createElement('div');
+      outputElement.classList.add('output');
+      outputElement.textContent = output;
+      outputArea.appendChild(outputElement);
+      outputArea.scrollTop = outputArea.scrollHeight;
+    }
+
+    async function runCommand(command) {
+      try {
+        const response = await fetch('/api/run-command', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ command }),
+        });
+
+        const data = await response.json();
+        appendOutput(data.output);
+      } catch (error) {
+        appendOutput('Error: Unable to execute the command.');
+      }
+    }
+  </script>
+</body>
+</html>
